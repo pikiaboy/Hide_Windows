@@ -11,11 +11,12 @@ AltTab_window_list()
 
 ;----------GUI Buttons---------------
 Gui, Add, Button,x5 y10 w50 gRefresh_List, Refresh
-Gui, Add, Button,x65 y10 w30 gHide, Hide
-Gui, Add, Button, x100 y10 gShow, Show
+Gui, Add, Button,x65 y10 w30 gBHide, Hide
+Gui, Add, Button, x100 y10 gBShow, Show
 
 ;-----List of Apps-----
 Gui, Add, ListView, r20 x5 w500 Grid Checked, #|ID|Title
+
 
 Loop, %AltTab_ID_List_0% ; this loop won't work in a fucntion...
 {
@@ -25,16 +26,26 @@ Loop, %AltTab_ID_List_0% ; this loop won't work in a fucntion...
 
 LV_ModifyCol()  ; Auto-size each column to fit its contents.
 
+List_Count := LV_GetCount() ;getting the list count
 Gui, Show
+
+WinGet, app_id, ID, A ;Getting the App ID in order to use hotkey to hide/show
+
 return
 
 GuiClose:
 Exitapp
 
 
-;-----Functions-----
+;-----HotKeys------
+^9::
+	;if 	
+	return
 
-Show:
+;-----Functions-----
+	
+
+BShow:
 	Loop, %AltTab_ID_List_0% 
 		{
 			RowNumber := LV_GetNext(RowNumber,"Checked") ; must use "Checked" in order to find which one is checked
@@ -45,7 +56,7 @@ Show:
 		}
 	return
 
-Hide: 
+BHide: 
     RowNumber = 0 
     Loop, %AltTab_ID_List_0% 
 	{
@@ -59,15 +70,19 @@ Hide:
 
 
 Refresh_list:
+	gosub BShow
+	
     LV_Delete()
     AltTab_window_list()
-    Loop, %AltTab_ID_List_0%
-	{
- 		 WinGetTitle, title, % "ahk_id " AltTab_ID_List_%A_Index%
- 
-  		LV_Add("", A_Index, AltTab_ID_List_%A_Index%, title)
-	}
-    LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	
+	Loop, %AltTab_ID_List_0% ; this loop won't work in a fucntion...
+		{
+			WinGetTitle, title, % "ahk_id " AltTab_ID_List_%A_Index%
+			LV_Add("", A_Index, AltTab_ID_List_%A_Index%, title)
+		}
+
+	LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	
 	return
 
 
@@ -92,7 +107,7 @@ AltTab_window_list()
     If ((Style & WS_DISABLED) or ! (wid_Title)) ; skip unimportant windows ; ! wid_Title or 
         Continue
 ;--------Hiding Certain Apps From Showing---------
-    If(wid_Title == "Settings" or wid_Title == "Store" or wid_Title == "Windows Shell Experience Host")
+    If(wid_Title == "Settings" or wid_Title == "Store" or wid_Title == "Windows Shell Experience Host" or wid_Title == "Calculator")
 	Continue
 ;--------------------------------------------------
     WinGet, es, ExStyle, ahk_id %wid%
