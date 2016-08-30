@@ -39,7 +39,10 @@ Exitapp
 
 ;-----HotKeys------
 ^9::
-	;if 	
+	IfWinNotExist AltTab list.ahk
+		WinShow, ahk_id %app_id%
+	else 
+		WinHide, ahk_id %app_id%
 	return
 
 ;-----Functions-----
@@ -70,18 +73,20 @@ BHide:
 
 
 Refresh_list:
+
 	gosub BShow
 	
     LV_Delete()
     AltTab_window_list()
 	
-	Loop, %AltTab_ID_List_0% ; this loop won't work in a fucntion...
+	Loop, %AltTab_ID_List_0% 
 		{
 			WinGetTitle, title, % "ahk_id " AltTab_ID_List_%A_Index%
 			LV_Add("", A_Index, AltTab_ID_List_%A_Index%, title)
 		}
 
 	LV_ModifyCol()  ; Auto-size each column to fit its contents.
+	
 	
 	return
 
