@@ -3,6 +3,7 @@
 ; AltTab_ID_List_1 to AltTab_ID_List_%AltTab_ID_List_0% contain the window IDs.
 
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+#InstallKeybdHook
 
 
 
@@ -14,8 +15,8 @@ Gui, Add, Button,x5 y10 w50 gRefresh_List, Refresh
 Gui, Add, Button,x65 y10 w30 gBHide, Hide
 Gui, Add, Button, x100 y10 gBShow, Show
 
-;-----List of Apps-----
-Gui, Add, ListView, r20 x5 w500 Grid Checked, #|ID|Title
+
+Gui, Add, ListView, r20 x5 w500 Grid Checked, #|ID|Title; making list of apps
 
 
 Loop, %AltTab_ID_List_0% ; this loop won't work in a fucntion...
@@ -27,14 +28,18 @@ Loop, %AltTab_ID_List_0% ; this loop won't work in a fucntion...
 LV_ModifyCol()  ; Auto-size each column to fit its contents.
 
 List_Count := LV_GetCount() ;getting the list count
+App_status := 0 ; 0 - apps are shown.
+				; 1 - apps are hidden.
 Gui, Show
 
-WinGet, app_id, ID, A ;Getting the App ID in order to use hotkey to hide/show
+WinGet, app_id, ID, A ;Getting the App ID in order to use hotkey to hide/show script
+
+MsgBox, Hide_Win is easy to use. `nCheck the windows that you want to hide, then press alt and ~ (Next to number 1) to hide it!`nJust press alt and ` again to show it again! `nTo hide the app, press ctrl and 9. To show the app, press ctrl and 9! 
 
 return
 
 GuiClose:
-Exitapp
+Exitapp 
 
 
 ;-----HotKeys------
@@ -57,6 +62,7 @@ BShow:
 			LV_GetText(WindowID,RowNumber, 2)
 			WinShow, ahk_id %WindowID%
 		}
+		App_status := 0
 	return
 
 BHide: 
@@ -69,6 +75,7 @@ BHide:
 	    LV_GetText(WindowID,RowNumber, 2)
 		WinHide, ahk_id %WindowID% ;WinHide only works on ahk_id..?
 	}
+	App_status := 1
     return
 
 
@@ -112,8 +119,7 @@ AltTab_window_list()
     If ((Style & WS_DISABLED) or ! (wid_Title)) ; skip unimportant windows ; ! wid_Title or 
         Continue
 ;--------Hiding Certain Apps From Showing---------
-    If(wid_Title == "Settings" or wid_Title == "Store" or wid_Title == "Windows Shell Experience Host" or wid_Title == "Calculator")
-	Continue
+	If(IsInvisibleWin10BackgroundAppWindow(wid))
 ;--------------------------------------------------
     WinGet, es, ExStyle, ahk_id %wid%
     Parent := Decimal_to_Hex( DllCall( "GetParent", "uint", wid ) )
@@ -136,4 +142,11 @@ Decimal_to_Hex(var)
   var += 0
   SetFormat, integer, d
   return var
-}
+}{
+  result := 0
+  VarSetCapacity(cloakedVal, A_PtrSize) ; DWMWA_CLOAKED := 14
+  hr := DllCall("DwmApi\DwmGetWindowAttribute", "Ptr", hWindow, "UInt", 14, "Ptr", &cloakedVal, "UInt", A_PtrSize)
+  if !hr ; returns S_OK (which is zero) on success. Otherwise, it returns an HRESULT error code
+    result := NumGet(cloakedVal) ; omitting the "&" performs better
+  return result ? true : false
+  }
