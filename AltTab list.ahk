@@ -50,6 +50,13 @@ Exitapp
 		WinHide, ahk_id %app_id%
 	return
 
+!`::
+	if (%App_status% == 0 ) 
+		goto BHide	
+	else
+		goto BShow
+	return
+	
 ;-----Functions-----
 	
 
@@ -73,7 +80,8 @@ BHide:
 	    if not RowNumber 
 		break
 	    LV_GetText(WindowID,RowNumber, 2)
-		WinHide, ahk_id %WindowID% ;WinHide only works on ahk_id..?
+		WinHide, ahk_id %WindowID%
+		;GroupAdd, hideWindow, ahk_id %WindowID% ; possible to addGrp here?
 	}
 	App_status := 1
     return
@@ -120,6 +128,7 @@ AltTab_window_list()
         Continue
 ;--------Hiding Certain Apps From Showing---------
 	If(IsInvisibleWin10BackgroundAppWindow(wid))
+		Continue
 ;--------------------------------------------------
     WinGet, es, ExStyle, ahk_id %wid%
     Parent := Decimal_to_Hex( DllCall( "GetParent", "uint", wid ) )
@@ -141,8 +150,11 @@ Decimal_to_Hex(var)
   SetFormat, integer, hex
   var += 0
   SetFormat, integer, d
-  return var
-}{
+  return var 
+}
+
+IsInvisibleWin10BackgroundAppWindow(hWindow) ;To Identify app-windows (Containers for Windows Store Apps)
+{
   result := 0
   VarSetCapacity(cloakedVal, A_PtrSize) ; DWMWA_CLOAKED := 14
   hr := DllCall("DwmApi\DwmGetWindowAttribute", "Ptr", hWindow, "UInt", 14, "Ptr", &cloakedVal, "UInt", A_PtrSize)
